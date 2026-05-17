@@ -2,7 +2,8 @@
 
 import { motion } from "framer-motion";
 import { useTheme } from "@/components/providers/theme-provider";
-import { mockUser } from "@/lib/mock-data";
+import { useUIStore } from "@/store/useUIStore";
+import { useAuthStore } from "@/store/useAuthStore";
 import { getInitials } from "@/lib/utils";
 import {
   Search,
@@ -14,6 +15,8 @@ import {
 
 export function Header() {
   const { theme, toggleTheme } = useTheme();
+  const openCommandPalette = useUIStore((s) => s.openCommandPalette);
+  const user = useAuthStore((s) => s.user);
 
   return (
     <motion.header
@@ -26,6 +29,8 @@ export function Header() {
       {/* Search */}
       <div className="flex-1 max-w-md">
         <div
+          role="button"
+          onClick={openCommandPalette}
           className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[var(--border-color)]
                       bg-[var(--surface)] text-[var(--muted-fg)] text-sm cursor-pointer
                       hover:border-[var(--primary)]/20 transition-colors"
@@ -70,7 +75,7 @@ export function Header() {
 
         {/* User avatar */}
         <div className="ml-1 w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-white text-xs font-bold cursor-pointer">
-          {getInitials(mockUser.name)}
+          {getInitials(user?.name ?? "U")}
         </div>
       </div>
     </motion.header>

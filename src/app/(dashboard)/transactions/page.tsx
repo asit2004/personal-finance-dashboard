@@ -5,7 +5,9 @@ import { motion } from "framer-motion";
 import { PageHeader } from "@/components/ui/page-header";
 import { GlassCard } from "@/components/ui/glass-card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { mockTransactions, categoryIcons, categoryColors } from "@/lib/mock-data";
+import { categoryIcons, categoryColors } from "@/lib/mock-data";
+import { useTransactionStore } from "@/store/useTransactionStore";
+import { useUIStore } from "@/store/useUIStore";
 import { formatCurrency, formatDate, cn } from "@/lib/utils";
 import {
   Search,
@@ -36,6 +38,8 @@ type SortField = "date" | "amount" | "description";
 type SortDir = "asc" | "desc";
 
 export default function TransactionsPage() {
+  const transactions = useTransactionStore((s) => s.transactions);
+  const openAddTransaction = useUIStore((s) => s.openAddTransaction);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState<"all" | "income" | "expense">("all");
@@ -43,7 +47,7 @@ export default function TransactionsPage() {
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   const filteredTransactions = useMemo(() => {
-    let result = [...mockTransactions];
+    let result = [...transactions];
 
     // Search
     if (search) {
@@ -95,10 +99,20 @@ export default function TransactionsPage() {
 
   return (
     <div>
-      <PageHeader
-        title="Transactions"
-        description="View and manage all your transactions"
-      />
+      <div className="flex items-start justify-between gap-4 mb-2">
+        <PageHeader
+          title="Transactions"
+          description="View and manage all your transactions"
+        />
+        <button
+          onClick={openAddTransaction}
+          className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl gradient-primary
+                     text-white text-sm font-semibold hover:opacity-90 transition-opacity mt-1"
+        >
+          <Plus className="w-4 h-4" />
+          Add
+        </button>
+      </div>
 
       {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">

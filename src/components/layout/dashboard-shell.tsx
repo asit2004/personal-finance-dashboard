@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Sidebar } from "./sidebar";
 import { Header } from "./header";
-import { cn } from "@/lib/utils";
+import { CommandPalette } from "@/components/ui/command-palette";
+import { AddTransactionModal } from "@/components/transactions/add-transaction-modal";
+import { useUIStore } from "@/store/useUIStore";
 import { useIsMobile } from "@/hooks/use-media-query";
 
 interface DashboardShellProps {
@@ -12,14 +14,33 @@ interface DashboardShellProps {
 }
 
 export function DashboardShell({ children }: DashboardShellProps) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const sidebarCollapsed = useUIStore((s) => s.sidebarCollapsed);
+  const toggleSidebar = useUIStore((s) => s.toggleSidebar);
+  const openCommandPalette = useUIStore((s) => s.openCommandPalette);
+  const openAddTransaction = useUIStore((s) => s.openAddTransaction);
   const isMobile = useIsMobile();
+
+  // Global keyboard shortcuts
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        openCommandPalette();
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === "t" && !e.shiftKey) {
+        e.preventDefault();
+        openAddTransaction();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [openCommandPalette, openAddTransaction]);
 
   return (
     <div className="min-h-screen">
       <Sidebar
         collapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        onToggle={toggleSidebar}
       />
 
       <motion.div
@@ -34,6 +55,10 @@ export function DashboardShell({ children }: DashboardShellProps) {
           {children}
         </main>
       </motion.div>
+
+      {/* Global overlays — mounted once at shell level */}
+      <CommandPalette />
+      <AddTransactionModal />
     </div>
   );
 }
