@@ -6,13 +6,7 @@ import { useUIStore } from "@/store/useUIStore";
 import { useSession } from "next-auth/react";
 import { getInitials } from "@/lib/utils";
 import Link from "next/link";
-import {
-  Search,
-  Bell,
-  Sun,
-  Moon,
-  Command,
-} from "lucide-react";
+import { Search, Bell, Sun, Moon, Command } from "lucide-react";
 
 export function Header() {
   const { theme, toggleTheme } = useTheme();
@@ -24,65 +18,75 @@ export function Header() {
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="sticky top-0 z-20 h-14 md:h-16 flex items-center justify-between px-4 md:px-6 border-b border-[var(--border-color)]
-                 bg-[var(--bg)]/80 backdrop-blur-xl"
+      className="sticky top-0 z-20 border-b border-[var(--border-color)] bg-[var(--bg)]/80 backdrop-blur-xl"
+      style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
-      {/* Search */}
-      <div className="flex-1 max-w-md">
-        <div
-          role="button"
-          onClick={openCommandPalette}
-          className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[var(--border-color)]
-                      bg-[var(--surface)] text-[var(--muted-fg)] text-sm cursor-pointer
-                      hover:border-[var(--primary)]/20 transition-colors"
-        >
-          <Search className="w-4 h-4" />
-          <span className="flex-1">Search transactions...</span>
-          <kbd className="hidden sm:flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-[var(--surface-elevated)] text-[10px] font-mono">
-            <Command className="w-2.5 h-2.5" />K
-          </kbd>
-        </div>
-      </div>
+      {/* Inner row — always h-14/h-16 below the safe area */}
+      <div className="h-14 md:h-16 flex items-center justify-between px-4 md:px-6">
 
-      {/* Actions */}
-      <div className="flex items-center gap-2 ml-4">
-        {/* Theme toggle */}
-        <button
-          onClick={toggleTheme}
-          className="w-9 h-9 rounded-xl flex items-center justify-center
-                     hover:bg-[var(--surface-elevated)] transition-colors text-[var(--muted-fg)] hover:text-[var(--fg)]"
-        >
-          <motion.div
-            initial={false}
-            animate={{ rotate: theme === "dark" ? 0 : 180 }}
-            transition={{ duration: 0.3 }}
+        {/* Search button — full-width tap target */}
+        <div className="flex-1 max-w-md">
+          <button
+            type="button"
+            onClick={openCommandPalette}
+            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl
+                       border border-[var(--border-color)] bg-[var(--surface)]
+                       text-[var(--muted-fg)] text-sm text-left
+                       active:bg-[var(--surface-elevated)] transition-colors"
           >
-            {theme === "dark" ? (
-              <Moon className="w-[18px] h-[18px]" />
-            ) : (
-              <Sun className="w-[18px] h-[18px]" />
-            )}
-          </motion.div>
-        </button>
+            <Search className="w-4 h-4 shrink-0" />
+            <span className="flex-1 truncate">Search transactions...</span>
+            <kbd className="hidden sm:flex items-center gap-0.5 px-1.5 py-0.5 rounded-md
+                            bg-[var(--surface-elevated)] text-[10px] font-mono shrink-0">
+              <Command className="w-2.5 h-2.5" />K
+            </kbd>
+          </button>
+        </div>
 
-        {/* Notifications */}
-        <button
-          className="relative w-9 h-9 rounded-xl flex items-center justify-center
-                     hover:bg-[var(--surface-elevated)] transition-colors text-[var(--muted-fg)] hover:text-[var(--fg)]"
-        >
-          <Bell className="w-[18px] h-[18px]" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[var(--primary)] ring-2 ring-[var(--bg)]" />
-        </button>
+        {/* Actions */}
+        <div className="flex items-center gap-1.5 md:gap-2 ml-3 md:ml-4">
+          {/* Theme toggle */}
+          <button
+            onClick={toggleTheme}
+            className="w-9 h-9 rounded-xl flex items-center justify-center
+                       hover:bg-[var(--surface-elevated)] transition-colors
+                       text-[var(--muted-fg)] hover:text-[var(--fg)]"
+          >
+            <motion.div
+              initial={false}
+              animate={{ rotate: theme === "dark" ? 0 : 180 }}
+              transition={{ duration: 0.3 }}
+            >
+              {theme === "dark" ? (
+                <Moon className="w-[18px] h-[18px]" />
+              ) : (
+                <Sun className="w-[18px] h-[18px]" />
+              )}
+            </motion.div>
+          </button>
 
-        {/* User avatar — links to profile */}
-        <Link
-          href="/profile"
-          className="ml-1 w-8 h-8 rounded-full gradient-primary flex items-center justify-center
-                     text-white text-xs font-bold hover:opacity-80 transition-opacity"
-          title="Go to profile"
-        >
-          {getInitials(session?.user?.name ?? "U")}
-        </Link>
+          {/* Notifications */}
+          <button
+            className="relative w-9 h-9 rounded-xl flex items-center justify-center
+                       hover:bg-[var(--surface-elevated)] transition-colors
+                       text-[var(--muted-fg)] hover:text-[var(--fg)]"
+          >
+            <Bell className="w-[18px] h-[18px]" />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full
+                             bg-[var(--primary)] ring-2 ring-[var(--bg)]" />
+          </button>
+
+          {/* Avatar → profile */}
+          <Link
+            href="/profile"
+            className="ml-1 w-8 h-8 rounded-full gradient-primary flex items-center justify-center
+                       text-white text-xs font-bold hover:opacity-80 transition-opacity"
+            title="Go to profile"
+          >
+            {getInitials(session?.user?.name ?? "U")}
+          </Link>
+        </div>
+
       </div>
     </motion.header>
   );

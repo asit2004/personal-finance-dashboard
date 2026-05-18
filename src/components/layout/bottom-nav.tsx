@@ -28,12 +28,15 @@ export function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 inset-x-0 z-40 md:hidden">
-      {/* Frosted glass bar */}
+      {/* Frosted glass bar — height auto-grows for home-indicator safe area */}
       <div
-        className="flex items-center justify-around h-16 px-2
+        className="flex items-center justify-around px-2
                    bg-[var(--bg)]/80 backdrop-blur-xl
                    border-t border-[var(--border-color)]"
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        style={{
+          height: "calc(64px + env(safe-area-inset-bottom))",
+          paddingBottom: "env(safe-area-inset-bottom)",
+        }}
       >
         {NAV_ITEMS.map((item) => {
           // Central FAB — Add Transaction

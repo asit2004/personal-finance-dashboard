@@ -53,7 +53,10 @@ export function DashboardShell({ children }: DashboardShellProps) {
       >
         <Header />
         {/* pb-20 on mobile to clear the bottom nav bar */}
-        <main className="flex-1 p-4 pb-24 md:pb-6 md:p-6 lg:p-8">
+        {/* pb accounts for bottom nav height (64px) + safe-area-inset-bottom (up to ~34px on Pro Max) */}
+        <main className="flex-1 p-4 md:p-6 lg:p-8"
+          style={{ paddingBottom: "calc(80px + env(safe-area-inset-bottom))" }}
+        >
           {children}
         </main>
       </motion.div>
