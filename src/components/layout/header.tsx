@@ -24,8 +24,8 @@ export function Header() {
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="sticky top-0 z-20 h-16 flex items-center justify-between pl-14 pr-6 md:px-6 border-b border-[var(--border-color)]
-                 bg-[var(--bg)]/60 backdrop-blur-xl"
+      className="sticky top-0 z-20 h-14 md:h-16 flex items-center justify-between px-4 md:px-6 border-b border-[var(--border-color)]
+                 bg-[var(--bg)]/80 backdrop-blur-xl"
     >
       {/* Search */}
       <div className="flex-1 max-w-md">

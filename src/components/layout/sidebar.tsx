@@ -15,8 +15,6 @@ import {
   Settings,
   User,
   ChevronLeft,
-  Menu,
-  X,
   Zap,
 } from "lucide-react";
 
@@ -224,51 +222,9 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     </div>
   );
 
-  // Mobile: overlay sidebar
+  // Mobile: bottom nav handles navigation — sidebar hidden on mobile
   if (isMobile) {
-    return (
-      <>
-        {/* Mobile menu button */}
-        <button
-          onClick={() => setMobileOpen(true)}
-          className="fixed top-3 left-3 z-50 w-10 h-10 rounded-xl glass flex items-center justify-center
-                     md:hidden"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
-
-        <AnimatePresence>
-          {mobileOpen && (
-            <>
-              {/* Backdrop */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setMobileOpen(false)}
-                className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
-              />
-              {/* Sidebar panel */}
-              <motion.div
-                initial={{ x: "-100%" }}
-                animate={{ x: 0 }}
-                exit={{ x: "-100%" }}
-                transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
-                className="fixed inset-y-0 left-0 z-50 w-[260px] bg-[var(--bg)] border-r border-[var(--border-color)] md:hidden"
-              >
-                <button
-                  onClick={() => setMobileOpen(false)}
-                  className="absolute top-3 right-3 w-8 h-8 rounded-lg hover:bg-[var(--surface-elevated)] flex items-center justify-center"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-                {sidebarContent}
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
-      </>
-    );
+    return null;
   }
 
   // Desktop: fixed sidebar

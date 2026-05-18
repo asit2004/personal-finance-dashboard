@@ -145,7 +145,7 @@ export default function DashboardPage() {
         variants={staggerContainer}
         initial="hidden"
         animate="show"
-        className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
+        className="relative grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8"
       >
         <motion.div variants={fadeUp}>
           <StatCard

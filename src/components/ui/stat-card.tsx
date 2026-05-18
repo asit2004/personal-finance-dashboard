@@ -62,11 +62,11 @@ export function StatCard({
       <div className="absolute inset-0 opacity-[0.03] gradient-mesh pointer-events-none" />
 
       <div className="relative flex items-start justify-between">
-        <div className="flex-1">
-          <p className="text-sm font-medium text-[var(--muted-fg)] mb-2">
+        <div className="flex-1 min-w-0">
+          <p className="text-xs md:text-sm font-medium text-[var(--muted-fg)] mb-1.5 md:mb-2 truncate">
             {label}
           </p>
-          <div className="text-2xl font-bold tracking-tight">
+          <div className="text-xl md:text-2xl font-bold tracking-tight">
             <AnimatedCounter
               value={value}
               isCurrency={isCurrency}
@@ -76,22 +76,22 @@ export function StatCard({
             />
           </div>
           {trend !== undefined && (
-            <div className={cn("flex items-center gap-1 mt-2 text-xs font-medium", trendColor)}>
-              <TrendIcon className="w-3.5 h-3.5" />
+            <div className={cn("flex items-center gap-1 mt-1.5 md:mt-2 text-[10px] md:text-xs font-medium", trendColor)}>
+              <TrendIcon className="w-3 h-3 md:w-3.5 md:h-3.5" />
               <span>
                 {trend > 0 ? "+" : ""}
                 {trend}%
               </span>
               {trendLabel && (
-                <span className="text-[var(--muted-fg)] ml-1">{trendLabel}</span>
+                <span className="text-[var(--muted-fg)] ml-1 hidden sm:inline">{trendLabel}</span>
               )}
             </div>
           )}
         </div>
 
         {Icon && (
-          <div className="w-10 h-10 rounded-xl bg-[var(--accent)] flex items-center justify-center">
-            <Icon className="w-5 h-5 text-[var(--accent-fg)]" />
+          <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-[var(--accent)] flex items-center justify-center shrink-0 ml-2">
+            <Icon className="w-4 h-4 md:w-5 md:h-5 text-[var(--accent-fg)]" />
           </div>
         )}
       </div>

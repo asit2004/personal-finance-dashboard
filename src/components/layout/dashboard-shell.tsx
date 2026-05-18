@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Sidebar } from "./sidebar";
 import { Header } from "./header";
+import { BottomNav } from "./bottom-nav";
 import { CommandPalette } from "@/components/ui/command-palette";
 import { AddTransactionModal } from "@/components/transactions/add-transaction-modal";
 import { useUIStore } from "@/store/useUIStore";
@@ -51,10 +52,14 @@ export function DashboardShell({ children }: DashboardShellProps) {
         className="min-h-screen flex flex-col"
       >
         <Header />
-        <main className="flex-1 p-4 md:p-6 lg:p-8">
+        {/* pb-20 on mobile to clear the bottom nav bar */}
+        <main className="flex-1 p-4 pb-24 md:pb-6 md:p-6 lg:p-8">
           {children}
         </main>
       </motion.div>
+
+      {/* Bottom navigation — mobile only */}
+      <BottomNav />
 
       {/* Global overlays — mounted once at shell level */}
       <CommandPalette />

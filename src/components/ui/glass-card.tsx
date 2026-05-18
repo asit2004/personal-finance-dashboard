@@ -36,7 +36,7 @@ export const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
           ease: [0.25, 0.46, 0.45, 0.94] as const,
         }}
         className={cn(
-          "glass-card card-shine p-6",
+          "glass-card card-shine p-4 md:p-6",
           hoverable && "cursor-default",
           hoverable && glowMap[glow],
           className
