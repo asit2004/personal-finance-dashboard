@@ -12,6 +12,10 @@ export const updateUserSchema = z.object({
   monthlyIncome: z.coerce.number().min(0).optional(),
   savingsGoal: z.coerce.number().min(0).optional(),
   onboardingComplete: z.boolean().optional(),
+  phone: z.string().max(20).optional(),
+  bio: z.string().max(300).optional(),
+  location: z.string().max(100).optional(),
+  jobTitle: z.string().max(100).optional(),
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;

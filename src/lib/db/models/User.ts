@@ -10,6 +10,11 @@ export interface IUser extends Document {
   onboardingComplete: boolean;
   monthlyIncome?: number;
   savingsGoal?: number;
+  // Extended profile fields
+  phone?: string;
+  bio?: string;
+  location?: string;
+  jobTitle?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,6 +30,10 @@ const UserSchema = new Schema<IUser>(
     onboardingComplete: { type: Boolean, default: false },
     monthlyIncome: { type: Number, min: 0 },
     savingsGoal: { type: Number, min: 0 },
+    phone: { type: String, trim: true },
+    bio: { type: String, maxlength: 300 },
+    location: { type: String, trim: true },
+    jobTitle: { type: String, trim: true },
   },
   { timestamps: true }
 );
