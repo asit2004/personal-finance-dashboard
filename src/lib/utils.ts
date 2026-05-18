@@ -5,25 +5,27 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("en-US", {
+export function formatCurrency(amount: number, currency = "INR"): string {
+  const locale = currency === "INR" ? "en-IN" : "en-US";
+  return new Intl.NumberFormat(locale, {
     style: "currency",
-    currency: "USD",
+    currency,
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   }).format(amount);
 }
 
-export function formatCompactCurrency(amount: number): string {
+export function formatCompactCurrency(amount: number, currency = "INR"): string {
+  const locale = currency === "INR" ? "en-IN" : "en-US";
   if (Math.abs(amount) >= 1000) {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat(locale, {
       style: "currency",
-      currency: "USD",
+      currency,
       notation: "compact",
       maximumFractionDigits: 1,
     }).format(amount);
   }
-  return formatCurrency(amount);
+  return formatCurrency(amount, currency);
 }
 
 export function formatDate(date: Date | string): string {

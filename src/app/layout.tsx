@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { SessionProvider } from "@/components/providers/session-provider";
@@ -16,6 +16,14 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  themeColor: "#6366f1",
+  width: "device-width",
+  initialScale: 1,
+  minimumScale: 1,
+  viewportFit: "cover",
+};
+
 export const metadata: Metadata = {
   title: {
     default: "FinanceAI — Smart Personal Finance Dashboard",
@@ -26,6 +34,13 @@ export const metadata: Metadata = {
   keywords: ["finance", "dashboard", "AI", "budgets", "spending", "analytics"],
   authors: [{ name: "FinanceAI" }],
   creator: "FinanceAI",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "FinanceAI",
+  },
+  formatDetection: { telephone: false },
   openGraph: {
     type: "website",
     title: "FinanceAI — Smart Personal Finance Dashboard",
@@ -50,6 +65,9 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${inter.variable} ${jetbrainsMono.variable}`}
     >
+      <head>
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+      </head>
       <body className="min-h-screen antialiased" style={{ fontFamily: "var(--font-inter), var(--font-sans)" }}>
         <SessionProvider>
           <ThemeProvider>{children}</ThemeProvider>

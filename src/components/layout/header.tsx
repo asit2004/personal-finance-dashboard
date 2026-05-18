@@ -3,8 +3,9 @@
 import { motion } from "framer-motion";
 import { useTheme } from "@/components/providers/theme-provider";
 import { useUIStore } from "@/store/useUIStore";
-import { useAuthStore } from "@/store/useAuthStore";
+import { useSession } from "next-auth/react";
 import { getInitials } from "@/lib/utils";
+import Link from "next/link";
 import {
   Search,
   Bell,
@@ -16,7 +17,7 @@ import {
 export function Header() {
   const { theme, toggleTheme } = useTheme();
   const openCommandPalette = useUIStore((s) => s.openCommandPalette);
-  const user = useAuthStore((s) => s.user);
+  const { data: session } = useSession();
 
   return (
     <motion.header
@@ -73,10 +74,15 @@ export function Header() {
           <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[var(--primary)] ring-2 ring-[var(--bg)]" />
         </button>
 
-        {/* User avatar */}
-        <div className="ml-1 w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-white text-xs font-bold cursor-pointer">
-          {getInitials(user?.name ?? "U")}
-        </div>
+        {/* User avatar — links to profile */}
+        <Link
+          href="/profile"
+          className="ml-1 w-8 h-8 rounded-full gradient-primary flex items-center justify-center
+                     text-white text-xs font-bold hover:opacity-80 transition-opacity"
+          title="Go to profile"
+        >
+          {getInitials(session?.user?.name ?? "U")}
+        </Link>
       </div>
     </motion.header>
   );
