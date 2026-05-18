@@ -114,8 +114,8 @@ export default function DashboardPage() {
 
   return (
     <div className="relative">
-      {/* 3D Hero Background */}
-      <div className="absolute top-0 left-0 right-0 h-[400px] overflow-hidden pointer-events-none">
+      {/* 3D Hero Background — desktop only, hidden on mobile to save space */}
+      <div className="absolute top-0 left-0 right-0 h-[300px] overflow-hidden pointer-events-none hidden md:block">
         <HeroScene />
         <div className="absolute inset-0 gradient-mesh" />
       </div>
@@ -125,17 +125,17 @@ export default function DashboardPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="relative mb-8 pt-4"
+        className="relative mb-4 md:mb-8 pt-1 md:pt-4"
       >
-        <p className="text-sm text-[var(--muted-fg)] mb-1">{getGreeting(userName)}</p>
-        <h1 className="text-3xl font-bold tracking-tight">
+        <p className="text-xs md:text-sm text-[var(--muted-fg)] mb-0.5 md:mb-1">{getGreeting(userName)}</p>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
           Your <GradientText>Financial Overview</GradientText>
         </h1>
-        <p className="text-sm text-[var(--muted-fg)] mt-2 max-w-lg">
+        <p className="text-xs md:text-sm text-[var(--muted-fg)] mt-1 md:mt-2 max-w-lg">
           {isLoading
             ? "Loading your financial data…"
             : income > 0
-              ? `This month you earned ${formatCurrency(income)} and spent ${formatCurrency(expenses)}.`
+              ? `This month: ${formatCurrency(income)} earned · ${formatCurrency(expenses)} spent`
               : "Add your first transaction to start tracking your finances."}
         </p>
       </motion.div>
@@ -145,7 +145,7 @@ export default function DashboardPage() {
         variants={staggerContainer}
         initial="hidden"
         animate="show"
-        className="relative grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8"
+        className="relative grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 mb-4 md:mb-8"
       >
         <motion.div variants={fadeUp}>
           <StatCard
@@ -199,18 +199,18 @@ export default function DashboardPage() {
       </motion.div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-8">
         <GlassCard delay={0.3} className="lg:col-span-2">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-3 md:mb-6">
             <div>
-              <h2 className="text-base font-semibold">Income vs Expenses</h2>
+              <h2 className="text-sm md:text-base font-semibold">Income vs Expenses</h2>
               <p className="text-xs text-[var(--muted-fg)] mt-0.5">6-month trend</p>
             </div>
             <Link
               href="/analytics"
               className="text-xs text-[var(--accent-fg)] hover:underline flex items-center gap-1"
             >
-              View Analytics <ArrowRight className="w-3 h-3" />
+              Analytics <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
           {monthlyData.length > 0 ? (
@@ -221,19 +221,20 @@ export default function DashboardPage() {
                 { key: "income", color: "#818cf8", label: "Income" },
                 { key: "expenses", color: "#f472b6", label: "Expenses" },
               ]}
-              height={260}
+              height={180}
             />
           ) : (
-            <div className="h-[260px] flex items-center justify-center text-sm text-[var(--muted-fg)]">
-              No transaction data yet — add transactions to see your trend.
+            <div className="h-[140px] md:h-[180px] flex flex-col items-center justify-center gap-2 text-sm text-[var(--muted-fg)]">
+              <span className="text-2xl">📊</span>
+              No data yet — add transactions to see your trend.
             </div>
           )}
         </GlassCard>
 
         <GlassCard delay={0.4}>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-3 md:mb-4">
             <div>
-              <h2 className="text-base font-semibold">Spending Breakdown</h2>
+              <h2 className="text-sm md:text-base font-semibold">Spending</h2>
               <p className="text-xs text-[var(--muted-fg)] mt-0.5">Last 6 months</p>
             </div>
           </div>
@@ -243,27 +244,23 @@ export default function DashboardPage() {
                 data={categoryData}
                 centerValue={formatCurrency(totalCategorySpend)}
                 centerLabel="Total Spent"
-                height={220}
+                height={160}
               />
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-4">
-                {categoryData.map((cat) => (
-                  <div key={cat.name} className="flex items-center gap-2 text-xs">
-                    <span
-                      className="w-2 h-2 rounded-full shrink-0"
-                      style={{ backgroundColor: cat.color }}
-                    />
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 mt-3">
+                {categoryData.slice(0, 4).map((cat) => (
+                  <div key={cat.name} className="flex items-center gap-1.5 text-xs">
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
                     <span className="text-[var(--muted-fg)] truncate capitalize">{cat.name}</span>
                     <span className="ml-auto font-medium">
-                      {totalCategorySpend > 0
-                        ? Math.round((cat.value / totalCategorySpend) * 100)
-                        : 0}%
+                      {totalCategorySpend > 0 ? Math.round((cat.value / totalCategorySpend) * 100) : 0}%
                     </span>
                   </div>
                 ))}
               </div>
             </>
           ) : (
-            <div className="h-[220px] flex items-center justify-center text-sm text-[var(--muted-fg)]">
+            <div className="h-[140px] md:h-[160px] flex flex-col items-center justify-center gap-2 text-sm text-[var(--muted-fg)]">
+              <span className="text-2xl">🍩</span>
               No expense data yet.
             </div>
           )}
@@ -271,11 +268,11 @@ export default function DashboardPage() {
       </div>
 
       {/* Bottom Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4">
         {/* Recent Transactions */}
         <GlassCard delay={0.5}>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold">Recent Transactions</h2>
+          <div className="flex items-center justify-between mb-3 md:mb-4">
+            <h2 className="text-sm md:text-base font-semibold">Recent Transactions</h2>
             <Link
               href="/transactions"
               className="text-xs text-[var(--accent-fg)] hover:underline flex items-center gap-1"
@@ -326,9 +323,9 @@ export default function DashboardPage() {
 
         {/* AI Insights */}
         <GlassCard delay={0.6} glow="purple">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-3 md:mb-4">
             <Sparkles className="w-4 h-4 text-[var(--accent-fg)]" />
-            <h2 className="text-base font-semibold">AI Insights</h2>
+            <h2 className="text-sm md:text-base font-semibold">AI Insights</h2>
             <span className="ml-auto text-[10px] font-semibold bg-[var(--primary)] text-white px-2 py-0.5 rounded-full">
               {mockAIInsights.length} new
             </span>
