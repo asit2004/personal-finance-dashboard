@@ -1,20 +1,27 @@
+import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/register"];
+const PUBLIC_PATHS = ["/login", "/register", "/api/auth"];
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const isAuth = request.cookies.get("financeai_auth")?.value === "1";
-  const isPublicPath = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
 
-  if (!isAuth && !isPublicPath) {
+  // Always allow auth API routes and static assets
+  if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
+    return NextResponse.next();
+  }
+
+  const session = await auth();
+  const isPublicPage = pathname.startsWith("/login") || pathname.startsWith("/register");
+
+  if (!session && !isPublicPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  if (isAuth && isPublicPath) {
+  if (session && isPublicPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     return NextResponse.redirect(url);
