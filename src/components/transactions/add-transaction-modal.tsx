@@ -108,23 +108,36 @@ export function AddTransactionModal() {
     }
 
     setIsLoading(true);
-    await new Promise((r) => setTimeout(r, 400));
+    try {
+      const res = await fetch("/api/transactions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(result.data),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Failed to save");
 
-    const { data } = result;
-    addTransaction({
-      id: `t${Date.now()}`,
-      description: data.description,
-      amount: data.type === "expense" ? -Math.abs(data.amount) : Math.abs(data.amount),
-      type: data.type,
-      category: data.category as TransactionCategory,
-      date: data.date,
-      merchant: data.merchant ?? "",
-      status: "completed",
-    });
+      // Also add to Zustand store for instant dashboard updates
+      addTransaction({
+        id: json.data._id,
+        description: json.data.description,
+        amount: json.data.amount,
+        type: json.data.type,
+        category: json.data.category as TransactionCategory,
+        date: json.data.date,
+        merchant: json.data.merchant ?? "",
+        status: "completed",
+      });
 
-    setIsLoading(false);
-    setSuccess(true);
-    setTimeout(() => close(), 1000);
+      // Signal transaction pages to refresh
+      window.dispatchEvent(new Event("transaction-added"));
+      setSuccess(true);
+      setTimeout(() => close(), 1000);
+    } catch (err) {
+      setErrors({ description: err instanceof Error ? err.message : "Failed to save" });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -229,7 +242,7 @@ export function AddTransactionModal() {
                   {/* Amount */}
                   <FormField label="Amount" error={errors.amount}>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[var(--muted-fg)]">$</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[var(--muted-fg)]">₹</span>
                       <input
                         type="number"
                         step="0.01"

@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { StatCard } from "@/components/ui/stat-card";
@@ -7,30 +9,16 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { GradientText } from "@/components/ui/gradient-text";
 import { AreaChartComponent } from "@/components/charts/area-chart";
 import { DoughnutChart } from "@/components/charts/doughnut-chart";
-import {
-  mockTransactions,
-  mockMonthlyData,
-  mockCategoryBreakdown,
-  mockAIInsights,
-  categoryIcons,
-} from "@/lib/mock-data";
+import { categoryIcons, categoryColors, mockAIInsights } from "@/lib/mock-data";
 import { formatCurrency, formatShortDate, cn } from "@/lib/utils";
 import {
-  Wallet,
-  TrendingUp,
-  TrendingDown,
-  PiggyBank,
-  Sparkles,
-  ArrowRight,
-  AlertTriangle,
-  CheckCircle2,
-  Info,
-  Lightbulb,
+  Wallet, TrendingUp, TrendingDown, PiggyBank,
+  Sparkles, ArrowRight, AlertTriangle, CheckCircle2,
+  Info, Lightbulb,
 } from "lucide-react";
 import Link from "next/link";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 
-// Dynamic import for 3D scene (SSR disabled)
 const HeroScene = dynamic(
   () => import("@/components/3d/hero-scene").then((mod) => mod.HeroScene),
   { ssr: false }
@@ -50,12 +38,79 @@ const insightColors = {
   tip: "text-violet-400 bg-violet-400/10",
 };
 
+interface Stats {
+  income: number;
+  expenses: number;
+  savings: number;
+  savingsRate: number;
+  byCategory: { _id: string; total: number; count: number }[];
+  monthly: { month: string; income: number; expenses: number; savings: number }[];
+}
+
+interface ApiTransaction {
+  _id: string;
+  description: string;
+  merchant: string;
+  amount: number;
+  type: "income" | "expense";
+  category: string;
+  date: string;
+  status: string;
+}
+
+function getGreeting(name: string) {
+  const hour = new Date().getHours();
+  const timeGreeting =
+    hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const firstName = name.split(" ")[0];
+  return `${timeGreeting}, ${firstName} 👋`;
+}
+
 export default function DashboardPage() {
-  const recentTransactions = mockTransactions.slice(0, 5);
-  const totalBalance = 48250.32;
-  const monthlyIncome = 12440;
-  const monthlyExpenses = 3802.6;
-  const savingsRate = 69.4;
+  const { data: session } = useSession();
+  const [monthStats, setMonthStats] = useState<Stats | null>(null);
+  const [chartStats, setChartStats] = useState<Stats | null>(null);
+  const [recentTxs, setRecentTxs] = useState<ApiTransaction[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchAll() {
+      try {
+        const [monthRes, chartRes, txRes] = await Promise.all([
+          fetch("/api/transactions/stats?months=1"),
+          fetch("/api/transactions/stats?months=6"),
+          fetch("/api/transactions?limit=5&sortBy=date&sortDir=desc"),
+        ]);
+        const [monthJson, chartJson, txJson] = await Promise.all([
+          monthRes.json(),
+          chartRes.json(),
+          txRes.json(),
+        ]);
+        if (monthRes.ok) setMonthStats(monthJson.data);
+        if (chartRes.ok) setChartStats(chartJson.data);
+        if (txRes.ok) setRecentTxs(txJson.data ?? []);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchAll();
+  }, []);
+
+  const userName = session?.user?.name ?? "there";
+  const income = monthStats?.income ?? 0;
+  const expenses = monthStats?.expenses ?? 0;
+  const savingsRate = monthStats?.savingsRate ?? 0;
+  const netSavings = income - expenses;
+
+  const monthlyData = chartStats?.monthly ?? [];
+  const categoryData =
+    chartStats?.byCategory.slice(0, 6).map((c) => ({
+      name: c._id,
+      value: c.total,
+      color: categoryColors[c._id] ?? "#94a3b8",
+    })) ?? [];
+
+  const totalCategorySpend = categoryData.reduce((s, c) => s + c.value, 0);
 
   return (
     <div className="relative">
@@ -72,12 +127,16 @@ export default function DashboardPage() {
         transition={{ duration: 0.6 }}
         className="relative mb-8 pt-4"
       >
-        <p className="text-sm text-[var(--muted-fg)] mb-1">Good afternoon, Alex 👋</p>
+        <p className="text-sm text-[var(--muted-fg)] mb-1">{getGreeting(userName)}</p>
         <h1 className="text-3xl font-bold tracking-tight">
           Your <GradientText>Financial Overview</GradientText>
         </h1>
         <p className="text-sm text-[var(--muted-fg)] mt-2 max-w-lg">
-          Your finances are looking great this month. You&apos;re on track to beat your savings goal by 23%.
+          {isLoading
+            ? "Loading your financial data…"
+            : income > 0
+              ? `This month you earned ${formatCurrency(income)} and spent ${formatCurrency(expenses)}.`
+              : "Add your first transaction to start tracking your finances."}
         </p>
       </motion.div>
 
@@ -90,35 +149,35 @@ export default function DashboardPage() {
       >
         <motion.div variants={fadeUp}>
           <StatCard
-            label="Total Balance"
-            value={totalBalance}
-            trend={12.5}
-            trendLabel="vs last month"
-            icon={Wallet}
-            glow="purple"
-            sparklineData={[32, 35, 38, 36, 42, 45, 48]}
-          />
-        </motion.div>
-        <motion.div variants={fadeUp}>
-          <StatCard
             label="Monthly Income"
-            value={monthlyIncome}
-            trend={8.2}
-            trendLabel="vs last month"
+            value={income}
+            trend={undefined}
+            trendLabel="this month"
             icon={TrendingUp}
             glow="green"
-            sparklineData={[8.2, 8.8, 9.5, 10.2, 9.8, 12.4]}
+            sparklineData={chartStats?.monthly.map((m) => m.income / 1000) ?? [0]}
           />
         </motion.div>
         <motion.div variants={fadeUp}>
           <StatCard
             label="Monthly Expenses"
-            value={monthlyExpenses}
-            trend={-15.3}
-            trendLabel="vs last month"
+            value={expenses}
+            trend={undefined}
+            trendLabel="this month"
             icon={TrendingDown}
             glow="pink"
-            sparklineData={[5.8, 6.2, 5.5, 6.8, 5.9, 3.8]}
+            sparklineData={chartStats?.monthly.map((m) => m.expenses / 1000) ?? [0]}
+          />
+        </motion.div>
+        <motion.div variants={fadeUp}>
+          <StatCard
+            label="Net Savings"
+            value={netSavings}
+            trend={undefined}
+            trendLabel="this month"
+            icon={Wallet}
+            glow="purple"
+            sparklineData={chartStats?.monthly.map((m) => m.savings / 1000) ?? [0]}
           />
         </motion.div>
         <motion.div variants={fadeUp}>
@@ -128,18 +187,19 @@ export default function DashboardPage() {
             isCurrency={false}
             suffix="%"
             decimals={1}
-            trend={23.1}
-            trendLabel="vs last month"
+            trend={undefined}
+            trendLabel="this month"
             icon={PiggyBank}
             glow="cyan"
-            sparklineData={[37, 30, 42, 33, 40, 69]}
+            sparklineData={chartStats?.monthly.map((m) =>
+              m.income > 0 ? Math.round(((m.income - m.expenses) / m.income) * 100) : 0
+            ) ?? [0]}
           />
         </motion.div>
       </motion.div>
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
-        {/* Income vs Expenses Chart */}
         <GlassCard delay={0.3} className="lg:col-span-2">
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -153,48 +213,60 @@ export default function DashboardPage() {
               View Analytics <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
-          <AreaChartComponent
-            data={mockMonthlyData}
-            xKey="month"
-            yKeys={[
-              { key: "income", color: "#818cf8", label: "Income" },
-              { key: "expenses", color: "#f472b6", label: "Expenses" },
-            ]}
-            height={260}
-          />
+          {monthlyData.length > 0 ? (
+            <AreaChartComponent
+              data={monthlyData}
+              xKey="month"
+              yKeys={[
+                { key: "income", color: "#818cf8", label: "Income" },
+                { key: "expenses", color: "#f472b6", label: "Expenses" },
+              ]}
+              height={260}
+            />
+          ) : (
+            <div className="h-[260px] flex items-center justify-center text-sm text-[var(--muted-fg)]">
+              No transaction data yet — add transactions to see your trend.
+            </div>
+          )}
         </GlassCard>
 
-        {/* Category Breakdown */}
         <GlassCard delay={0.4}>
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-base font-semibold">Spending Breakdown</h2>
-              <p className="text-xs text-[var(--muted-fg)] mt-0.5">This month</p>
+              <p className="text-xs text-[var(--muted-fg)] mt-0.5">Last 6 months</p>
             </div>
           </div>
-          <DoughnutChart
-            data={mockCategoryBreakdown.map((c) => ({
-              name: c.category,
-              value: c.amount,
-              color: c.color,
-            }))}
-            centerValue={formatCurrency(monthlyExpenses)}
-            centerLabel="Total Spent"
-            height={220}
-          />
-          {/* Legend */}
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-4">
-            {mockCategoryBreakdown.slice(0, 6).map((cat) => (
-              <div key={cat.category} className="flex items-center gap-2 text-xs">
-                <span
-                  className="w-2 h-2 rounded-full shrink-0"
-                  style={{ backgroundColor: cat.color }}
-                />
-                <span className="text-[var(--muted-fg)] truncate">{cat.category}</span>
-                <span className="ml-auto font-medium">{cat.percentage}%</span>
+          {categoryData.length > 0 ? (
+            <>
+              <DoughnutChart
+                data={categoryData}
+                centerValue={formatCurrency(totalCategorySpend)}
+                centerLabel="Total Spent"
+                height={220}
+              />
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-4">
+                {categoryData.map((cat) => (
+                  <div key={cat.name} className="flex items-center gap-2 text-xs">
+                    <span
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{ backgroundColor: cat.color }}
+                    />
+                    <span className="text-[var(--muted-fg)] truncate capitalize">{cat.name}</span>
+                    <span className="ml-auto font-medium">
+                      {totalCategorySpend > 0
+                        ? Math.round((cat.value / totalCategorySpend) * 100)
+                        : 0}%
+                    </span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </>
+          ) : (
+            <div className="h-[220px] flex items-center justify-center text-sm text-[var(--muted-fg)]">
+              No expense data yet.
+            </div>
+          )}
         </GlassCard>
       </div>
 
@@ -211,34 +283,45 @@ export default function DashboardPage() {
               View All <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
-          <div className="space-y-1">
-            {recentTransactions.map((tx, i) => (
-              <motion.div
-                key={tx.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.6 + i * 0.08 }}
-                className="flex items-center gap-3 py-2.5 px-2 rounded-xl hover:bg-[var(--surface-elevated)] transition-colors"
-              >
-                <div className="w-9 h-9 rounded-xl bg-[var(--surface-elevated)] flex items-center justify-center text-sm shrink-0">
-                  {categoryIcons[tx.category]}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{tx.description}</p>
-                  <p className="text-xs text-[var(--muted-fg)]">{tx.merchant} · {formatShortDate(tx.date)}</p>
-                </div>
-                <span
-                  className={cn(
-                    "text-sm font-semibold font-mono tabular-nums",
-                    tx.amount > 0 ? "text-emerald-400" : "text-[var(--fg)]"
-                  )}
+          {recentTxs.length === 0 ? (
+            <p className="text-sm text-[var(--muted-fg)] py-6 text-center">
+              No transactions yet.{" "}
+              <Link href="/transactions" className="text-[var(--accent-fg)] hover:underline">
+                Add one →
+              </Link>
+            </p>
+          ) : (
+            <div className="space-y-1">
+              {recentTxs.map((tx, i) => (
+                <motion.div
+                  key={tx._id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.6 + i * 0.08 }}
+                  className="flex items-center gap-3 py-2.5 px-2 rounded-xl hover:bg-[var(--surface-elevated)] transition-colors"
                 >
-                  {tx.amount > 0 ? "+" : ""}
-                  {formatCurrency(Math.abs(tx.amount))}
-                </span>
-              </motion.div>
-            ))}
-          </div>
+                  <div className="w-9 h-9 rounded-xl bg-[var(--surface-elevated)] flex items-center justify-center text-sm shrink-0">
+                    {categoryIcons[tx.category] ?? "📦"}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{tx.description}</p>
+                    <p className="text-xs text-[var(--muted-fg)]">
+                      {tx.merchant} · {formatShortDate(tx.date)}
+                    </p>
+                  </div>
+                  <span
+                    className={cn(
+                      "text-sm font-semibold font-mono tabular-nums",
+                      tx.amount > 0 ? "text-emerald-400" : "text-[var(--fg)]"
+                    )}
+                  >
+                    {tx.amount > 0 ? "+" : ""}
+                    {formatCurrency(Math.abs(tx.amount))}
+                  </span>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </GlassCard>
 
         {/* AI Insights */}
@@ -262,21 +345,12 @@ export default function DashboardPage() {
                   transition={{ delay: 0.7 + i * 0.1 }}
                   className="flex gap-3 p-3 rounded-xl bg-[var(--surface)] hover:bg-[var(--surface-elevated)] transition-colors"
                 >
-                  <div
-                    className={cn(
-                      "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
-                      colorClass
-                    )}
-                  >
+                  <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0", colorClass)}>
                     <Icon className="w-4 h-4" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <p className="text-sm font-medium">{insight.title}</p>
-                    </div>
-                    <p className="text-xs text-[var(--muted-fg)] line-clamp-2">
-                      {insight.description}
-                    </p>
+                    <p className="text-sm font-medium">{insight.title}</p>
+                    <p className="text-xs text-[var(--muted-fg)] line-clamp-2">{insight.description}</p>
                     {insight.actionLabel && (
                       <button className="text-xs text-[var(--accent-fg)] mt-1.5 hover:underline">
                         {insight.actionLabel} →
