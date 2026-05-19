@@ -8,8 +8,9 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { getInitials, formatDate } from "@/lib/utils";
 import {
   Mail, Calendar, Crown, Camera, MapPin, Briefcase,
-  Phone, Loader2, CheckCircle, AlertCircle, User,
+  Phone, Loader2, CheckCircle, AlertCircle, User, LogOut,
 } from "lucide-react";
+import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { fadeUp, staggerContainer } from "@/lib/animations";
 
@@ -168,6 +169,17 @@ export default function ProfilePage() {
                   <MetaRow icon={<Phone className="w-4 h-4" />} label={profile.phone} />
                 )}
               </div>
+
+              {/* Logout */}
+              <button
+                onClick={() => signOut({ callbackUrl: "/login" })}
+                className="mt-6 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl
+                           text-sm font-medium text-rose-400 border border-rose-400/20
+                           hover:bg-rose-500/10 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                Log out
+              </button>
             </div>
           </GlassCard>
         </motion.div>

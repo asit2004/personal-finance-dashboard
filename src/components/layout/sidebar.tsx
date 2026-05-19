@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-media-query";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   ArrowLeftRight,
@@ -16,6 +17,7 @@ import {
   User,
   ChevronLeft,
   Zap,
+  LogOut,
 } from "lucide-react";
 
 const navItems = [
@@ -189,6 +191,29 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
             </Link>
           );
         })}
+
+        {/* Logout */}
+        <motion.button
+          whileHover={{ x: 2 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => signOut({ callbackUrl: "/login" })}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
+                     text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors"
+        >
+          <LogOut className="w-[18px] h-[18px] shrink-0" />
+          <AnimatePresence>
+            {!collapsed && (
+              <motion.span
+                initial={{ opacity: 0, width: 0 }}
+                animate={{ opacity: 1, width: "auto" }}
+                exit={{ opacity: 0, width: 0 }}
+                className="whitespace-nowrap overflow-hidden"
+              >
+                Log out
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </motion.button>
       </div>
 
       {/* Collapse toggle (desktop only) */}
