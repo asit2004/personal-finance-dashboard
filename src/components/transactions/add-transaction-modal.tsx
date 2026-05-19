@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { z } from "zod";
-import { X, Plus, Loader2, TrendingUp, TrendingDown } from "lucide-react";
+import { X, Plus, Loader2, ArrowUp, ArrowDown, CheckCircle2 } from "lucide-react";
 import { useUIStore } from "@/store/useUIStore";
 import { useTransactionStore } from "@/store/useTransactionStore";
 import { TransactionCategory } from "@/types";
@@ -191,12 +191,17 @@ export function AddTransactionModal() {
               {/* Success state */}
               {success ? (
                 <div className="flex flex-col items-center justify-center py-12 gap-3">
-                  <div className="w-12 h-12 rounded-full bg-[var(--neon-green)]/20 flex items-center justify-center">
-                    <Plus className="w-6 h-6 text-[var(--neon-green)] rotate-45" />
-                  </div>
-                  <p className="font-semibold text-[var(--neon-green)]">Transaction added!</p>
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                    className="w-14 h-14 rounded-full bg-emerald-400/20 flex items-center justify-center"
+                  >
+                    <CheckCircle2 className="w-7 h-7 text-emerald-400" />
+                  </motion.div>
+                  <p className="font-semibold text-emerald-400">Transaction added!</p>
                   <p className="text-sm text-[var(--muted-fg)]">
-                    {formatCurrency(Math.abs(form.amount))} recorded
+                    {formatCurrency(Math.abs(form.amount))} recorded successfully
                   </p>
                 </div>
               ) : (
@@ -218,9 +223,9 @@ export function AddTransactionModal() {
                         )}
                       >
                         {type === "income" ? (
-                          <TrendingUp className="w-4 h-4" />
+                          <ArrowUp className="w-4 h-4" />
                         ) : (
-                          <TrendingDown className="w-4 h-4" />
+                          <ArrowDown className="w-4 h-4" />
                         )}
                         {type.charAt(0).toUpperCase() + type.slice(1)}
                       </button>
@@ -282,13 +287,13 @@ export function AddTransactionModal() {
                     </FormField>
                   </div>
 
-                  {/* Merchant (optional) */}
-                  <FormField label="Merchant (optional)">
+                  {/* Merchant / Source (optional) */}
+                  <FormField label={form.type === "income" ? "Source (optional)" : "Merchant (optional)"}>
                     <input
                       type="text"
                       value={form.merchant ?? ""}
                       onChange={(e) => update("merchant", e.target.value)}
-                      placeholder="e.g. Whole Foods"
+                      placeholder={form.type === "income" ? "e.g. Company, Client name" : "e.g. Swiggy, Amazon"}
                       className={inputCls(false)}
                     />
                   </FormField>
