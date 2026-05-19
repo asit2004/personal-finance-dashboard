@@ -109,7 +109,7 @@ export function Header() {
                   exit={{ opacity: 0, scale: 0.95, y: -4 }}
                   transition={{ duration: 0.15 }}
                   className="absolute right-0 top-10 w-52 rounded-2xl border border-[var(--border-color)]
-                             bg-[var(--card-bg)] shadow-xl backdrop-blur-xl overflow-hidden z-50"
+                             bg-[var(--bg)] shadow-2xl overflow-hidden z-50"
                 >
                   {/* User info */}
                   <div className="px-4 py-3 border-b border-[var(--border-color)]">

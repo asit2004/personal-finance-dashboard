@@ -9,13 +9,14 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { GradientText } from "@/components/ui/gradient-text";
 import { AreaChartComponent } from "@/components/charts/area-chart";
 import { DoughnutChart } from "@/components/charts/doughnut-chart";
-import { categoryIcons, categoryColors, mockAIInsights } from "@/lib/mock-data";
+import { categoryIcons, categoryColors } from "@/lib/mock-data";
 import { formatCurrency, formatShortDate, cn } from "@/lib/utils";
 import {
   Wallet, TrendingUp, TrendingDown, PiggyBank,
   Sparkles, ArrowRight, AlertTriangle, CheckCircle2,
-  Info, Lightbulb,
+  Info, Lightbulb, Plus,
 } from "lucide-react";
+import { useUIStore } from "@/store/useUIStore";
 import Link from "next/link";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 
@@ -68,27 +69,32 @@ function getGreeting(name: string) {
 
 export default function DashboardPage() {
   const { data: session } = useSession();
+  const openAddTransaction = useUIStore((s) => s.openAddTransaction);
   const [monthStats, setMonthStats] = useState<Stats | null>(null);
   const [chartStats, setChartStats] = useState<Stats | null>(null);
   const [recentTxs, setRecentTxs] = useState<ApiTransaction[]>([]);
+  const [insights, setInsights] = useState<{ _id: string; title: string; body: string; type: string; impact: string; actionLabel?: string; actionUrl?: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchAll() {
       try {
-        const [monthRes, chartRes, txRes] = await Promise.all([
+        const [monthRes, chartRes, txRes, insightsRes] = await Promise.all([
           fetch("/api/transactions/stats?months=1"),
           fetch("/api/transactions/stats?months=6"),
           fetch("/api/transactions?limit=5&sortBy=date&sortDir=desc"),
+          fetch("/api/insights"),
         ]);
-        const [monthJson, chartJson, txJson] = await Promise.all([
+        const [monthJson, chartJson, txJson, insightsJson] = await Promise.all([
           monthRes.json(),
           chartRes.json(),
           txRes.json(),
+          insightsRes.json(),
         ]);
         if (monthRes.ok) setMonthStats(monthJson.data);
         if (chartRes.ok) setChartStats(chartJson.data);
         if (txRes.ok) setRecentTxs(txJson.data ?? []);
+        if (insightsRes.ok) setInsights((insightsJson.data ?? []).slice(0, 3));
       } finally {
         setIsLoading(false);
       }
@@ -138,6 +144,14 @@ export default function DashboardPage() {
               ? `This month: ${formatCurrency(income)} earned · ${formatCurrency(expenses)} spent`
               : "Add your first transaction to start tracking your finances."}
         </p>
+        <button
+          onClick={openAddTransaction}
+          className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl gradient-primary
+                     text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+        >
+          <Plus className="w-4 h-4" />
+          Add Transaction
+        </button>
       </motion.div>
 
       {/* Stat Cards */}
@@ -327,16 +341,21 @@ export default function DashboardPage() {
             <Sparkles className="w-4 h-4 text-[var(--accent-fg)]" />
             <h2 className="text-sm md:text-base font-semibold">AI Insights</h2>
             <span className="ml-auto text-[10px] font-semibold bg-[var(--primary)] text-white px-2 py-0.5 rounded-full">
-              {mockAIInsights.length} new
+              {insights.length} new
             </span>
           </div>
           <div className="space-y-3">
-            {mockAIInsights.slice(0, 3).map((insight, i) => {
-              const Icon = insightIcons[insight.type];
-              const colorClass = insightColors[insight.type];
+            {insights.length === 0 ? (
+              <p className="text-sm text-[var(--muted-fg)] py-4 text-center">
+                Add transactions to generate insights.
+              </p>
+            ) : insights.map((insight, i) => {
+              const type = insight.type as keyof typeof insightIcons;
+              const Icon = insightIcons[type] ?? Lightbulb;
+              const colorClass = insightColors[type] ?? insightColors.tip;
               return (
                 <motion.div
-                  key={insight.id}
+                  key={insight._id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.7 + i * 0.1 }}
@@ -347,11 +366,11 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium">{insight.title}</p>
-                    <p className="text-xs text-[var(--muted-fg)] line-clamp-2">{insight.description}</p>
-                    {insight.actionLabel && (
-                      <button className="text-xs text-[var(--accent-fg)] mt-1.5 hover:underline">
+                    <p className="text-xs text-[var(--muted-fg)] line-clamp-2">{insight.body}</p>
+                    {insight.actionLabel && insight.actionUrl && (
+                      <a href={insight.actionUrl} className="text-xs text-[var(--accent-fg)] mt-1.5 hover:underline block">
                         {insight.actionLabel} →
-                      </button>
+                      </a>
                     )}
                   </div>
                 </motion.div>
