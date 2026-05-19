@@ -4,12 +4,18 @@ import Google from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { connectDB } from "@/lib/db/mongoose";
 import { User } from "@/lib/db/models/User";
+import { OTP } from "@/lib/db/models/OTP";
 import { z } from "zod";
 import { authConfig } from "./auth.config";
 
-const credentialsSchema = z.object({
+const emailSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
+});
+
+const phoneSchema = z.object({
+  phone: z.string().regex(/^\+91[6-9]\d{9}$/),
+  otp: z.string().length(6),
 });
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -22,36 +28,89 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
 
+    // Unified Credentials — routes to email or phone-OTP based on which fields arrive
     Credentials({
+      credentials: {
+        email: {},
+        password: {},
+        phone: {},
+        otp: {},
+      },
       async authorize(credentials) {
-        const parsed = credentialsSchema.safeParse(credentials);
-        if (!parsed.success) return null;
-
-        const { email, password } = parsed.data;
-
         await connectDB();
 
-        // select: false on password field — must explicitly request it
-        const user = await User.findOne({ email }).select("+password");
-        if (!user || !user.password) return null;
+        // ── Phone OTP flow ──────────────────────────────────────────────
+        const phoneResult = phoneSchema.safeParse(credentials);
+        if (phoneResult.success) {
+          const { phone, otp } = phoneResult.data;
 
-        const valid = await bcrypt.compare(password, user.password);
-        if (!valid) return null;
+          const record = await OTP.findOne({
+            phone,
+            expiresAt: { $gt: new Date() },
+          }).sort({ createdAt: -1 });
 
-        return {
-          id: user._id.toString(),
-          name: user.name,
-          email: user.email,
-          image: user.avatar,
-          plan: user.plan,
-          currency: user.currency,
-        };
+          if (!record) return null;
+
+          if (record.attempts >= 3) {
+            await OTP.deleteOne({ _id: record._id });
+            return null;
+          }
+
+          const valid = await bcrypt.compare(otp, record.otpHash);
+          if (!valid) {
+            await OTP.updateOne({ _id: record._id }, { $inc: { attempts: 1 } });
+            return null;
+          }
+
+          await OTP.deleteOne({ _id: record._id });
+
+          let user = await User.findOne({ phone });
+          if (!user) {
+            user = await User.create({
+              name: phone,
+              phone,
+              plan: "free",
+              currency: "INR",
+            });
+          }
+
+          return {
+            id: user._id.toString(),
+            name: user.name,
+            email: user.email ?? null,
+            image: user.avatar ?? null,
+            plan: user.plan,
+            currency: user.currency,
+          };
+        }
+
+        // ── Email + password flow ───────────────────────────────────────
+        const emailResult = emailSchema.safeParse(credentials);
+        if (emailResult.success) {
+          const { email, password } = emailResult.data;
+
+          const user = await User.findOne({ email }).select("+password");
+          if (!user || !user.password) return null;
+
+          const valid = await bcrypt.compare(password, user.password);
+          if (!valid) return null;
+
+          return {
+            id: user._id.toString(),
+            name: user.name,
+            email: user.email,
+            image: user.avatar,
+            plan: user.plan,
+            currency: user.currency,
+          };
+        }
+
+        return null;
       },
     }),
   ],
 
   callbacks: {
-    // Persist extra fields into the JWT
     async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id ?? "";
@@ -59,7 +118,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.currency = (user as { currency?: string }).currency ?? "INR";
       }
 
-      // Google OAuth — create user on first sign-in
+      // Google OAuth — create/find user on first sign-in
       if (account?.provider === "google" && token.email) {
         await connectDB();
         const existing = await User.findOne({ email: token.email });
@@ -84,7 +143,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token;
     },
 
-    // Expose JWT fields to the session object the client sees
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string;
