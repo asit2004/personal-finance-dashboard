@@ -35,29 +35,27 @@ export function Header() {
       className="sticky top-0 z-20 border-b border-[var(--border-color)] bg-[var(--bg)]/80 backdrop-blur-xl"
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
-      <div className="h-14 md:h-16 flex items-center justify-between px-4 md:px-6">
+      <div className="h-14 md:h-16 flex items-center gap-3 md:gap-4 px-4 md:px-6">
 
-        {/* Search button */}
-        <div className="flex-1 max-w-md">
-          <button
-            type="button"
-            onClick={openCommandPalette}
-            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl
-                       border border-[var(--border-color)] bg-[var(--surface)]
-                       text-[var(--muted-fg)] text-sm text-left
-                       active:bg-[var(--surface-elevated)] transition-colors"
-          >
-            <Search className="w-4 h-4 shrink-0" />
-            <span className="flex-1 truncate">Search transactions...</span>
-            <kbd className="hidden sm:flex items-center gap-0.5 px-1.5 py-0.5 rounded-md
-                            bg-[var(--surface-elevated)] text-[10px] font-mono shrink-0">
-              <Command className="w-2.5 h-2.5" />K
-            </kbd>
-          </button>
-        </div>
+        {/* Search button — grows to fill all available space */}
+        <button
+          type="button"
+          onClick={openCommandPalette}
+          className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl
+                     border border-[var(--border-color)] bg-[var(--surface)]
+                     text-[var(--muted-fg)] text-sm text-left
+                     hover:bg-[var(--surface-elevated)] active:bg-[var(--surface-elevated)] transition-colors"
+        >
+          <Search className="w-4 h-4 shrink-0" />
+          <span className="flex-1 truncate">Search transactions...</span>
+          <kbd className="hidden sm:flex items-center gap-0.5 px-1.5 py-0.5 rounded-md
+                          bg-[var(--surface-elevated)] text-[10px] font-mono shrink-0">
+            <Command className="w-2.5 h-2.5" />K
+          </kbd>
+        </button>
 
-        {/* Actions */}
-        <div className="flex items-center gap-1.5 md:gap-2 ml-3 md:ml-4">
+        {/* Actions — shrink-0 so they never compress */}
+        <div className="flex items-center gap-1 md:gap-1.5 shrink-0">
 
           {/* Theme toggle */}
           <button

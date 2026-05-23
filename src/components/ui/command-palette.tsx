@@ -235,17 +235,24 @@ export function CommandPalette() {
             onClick={close}
           />
 
-          {/* Panel */}
+          {/* Panel — bottom sheet on mobile, centered modal on desktop */}
           <motion.div
             key="palette-panel"
-            initial={{ opacity: 0, scale: 0.96, y: -8 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: -8 }}
-            transition={{ duration: 0.18, ease: EASE }}
-            className="fixed top-[15vh] left-1/2 -translate-x-1/2 z-50 w-full max-w-xl mx-4"
-            style={{ maxHeight: "70vh" }}
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 24 }}
+            transition={{ duration: 0.2, ease: EASE }}
+            className="fixed inset-x-0 bottom-0 z-50 sm:inset-x-auto sm:bottom-auto sm:top-[15vh] sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-xl sm:mx-4"
+            style={{ maxHeight: "82vh" }}
           >
-            <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg)] shadow-2xl overflow-hidden flex flex-col">
+            <div className="rounded-t-2xl sm:rounded-2xl border border-[var(--border-color)] bg-[var(--bg)] shadow-2xl overflow-hidden flex flex-col"
+              style={{ maxHeight: "82vh" }}
+            >
+              {/* Mobile drag handle */}
+              <div className="sm:hidden flex justify-center pt-3 pb-1">
+                <div className="w-10 h-1 rounded-full bg-[var(--border-color)]" />
+              </div>
+
               {/* Search input */}
               <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[var(--border-color)]">
                 <Search className="w-4 h-4 text-[var(--muted-fg)] shrink-0" />
@@ -291,12 +298,15 @@ export function CommandPalette() {
                 )}
               </div>
 
-              {/* Footer */}
-              <div className="flex items-center gap-4 px-4 py-2.5 border-t border-[var(--border-color)] text-[10px] text-[var(--muted-fg)]">
+              {/* Footer — keyboard hints on desktop only */}
+              <div className="hidden sm:flex items-center gap-4 px-4 py-2.5 border-t border-[var(--border-color)] text-[10px] text-[var(--muted-fg)]">
                 <span className="flex items-center gap-1"><kbd className="font-mono">↑↓</kbd> navigate</span>
                 <span className="flex items-center gap-1"><kbd className="font-mono">↵</kbd> select</span>
                 <span className="flex items-center gap-1"><kbd className="font-mono">ESC</kbd> close</span>
               </div>
+
+              {/* Mobile safe area padding */}
+              <div className="sm:hidden h-safe-bottom" style={{ paddingBottom: "env(safe-area-inset-bottom)" }} />
             </div>
           </motion.div>
         </>
