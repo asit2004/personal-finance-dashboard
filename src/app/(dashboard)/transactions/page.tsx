@@ -293,13 +293,16 @@ export default function TransactionsPage() {
 
   return (
     <div>
-      <div className="flex items-start justify-between gap-4 mb-2">
+      <div className="flex items-start justify-between gap-3 mb-2">
         <PageHeader title="Transactions" description="View and manage all your transactions" />
-        <button onClick={openAddTransaction}
-          className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl gradient-primary
-                     text-white text-sm font-semibold hover:opacity-90 transition-opacity mt-1">
-          <Plus className="w-4 h-4" /> Add
-        </button>
+        <div className="flex items-center gap-2 mt-1 shrink-0">
+          <button onClick={openAddTransaction}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl gradient-primary
+                       text-white text-sm font-semibold hover:opacity-90 transition-opacity">
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Add</span>
+          </button>
+        </div>
       </div>
 
       {/* Summary — real monthly totals from stats API */}

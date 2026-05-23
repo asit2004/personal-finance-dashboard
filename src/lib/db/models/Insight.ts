@@ -11,6 +11,7 @@ export interface IInsight extends Document {
   actionLabel?: string;
   actionUrl?: string;
   read: boolean;
+  source: "rule" | "ai";
   generatedAt: Date;
   expiresAt: Date;
   createdAt: Date;
@@ -27,6 +28,7 @@ const InsightSchema = new Schema<IInsight>(
     actionLabel: { type: String },
     actionUrl: { type: String },
     read: { type: Boolean, default: false },
+    source: { type: String, enum: ["rule", "ai"], default: "rule" },
     generatedAt: { type: Date, default: Date.now },
     expiresAt: { type: Date, required: true },
   },

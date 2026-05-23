@@ -153,7 +153,7 @@ async function generateInsights(userId: mongoose.Types.ObjectId) {
   // Save all to DB with 7-day expiry
   const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
   await Insight.insertMany(
-    insights.map((i) => ({ userId, ...i, read: false, generatedAt: now, expiresAt }))
+    insights.map((i) => ({ userId, ...i, source: "rule", read: false, generatedAt: now, expiresAt }))
   );
 }
 
