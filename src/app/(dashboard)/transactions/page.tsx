@@ -414,8 +414,8 @@ export default function TransactionsPage() {
                   </span>
                 </span>
                 <span className={cn("w-28 text-right text-sm font-semibold font-mono tabular-nums",
-                  tx.amount > 0 ? "text-emerald-400" : "")}>
-                  {tx.amount > 0 ? "+" : "-"}{formatCurrency(Math.abs(tx.amount))}
+                  tx.type === "income" ? "text-emerald-400" : "text-red-400")}>
+                  {tx.type === "income" ? "+" : "-"}{formatCurrency(Math.abs(tx.amount))}
                 </span>
 
                 {/* Edit / Delete — appear on row hover */}
