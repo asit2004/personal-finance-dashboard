@@ -17,9 +17,13 @@ export async function POST() {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  if (!process.env.OPENROUTER_API_KEY) {
+  const keyPresent = !!process.env.OPENROUTER_API_KEY;
+  const keyPrefix  = process.env.OPENROUTER_API_KEY?.slice(0, 10) ?? "undefined";
+  console.log("[AI Insights] key present:", keyPresent, "prefix:", keyPrefix);
+
+  if (!keyPresent) {
     return NextResponse.json(
-      { error: "AI insights are not configured (OPENROUTER_API_KEY missing)" },
+      { error: "AI insights are not configured (OPENROUTER_API_KEY missing)", debug: { keyPresent, keyPrefix } },
       { status: 503 },
     );
   }
