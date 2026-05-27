@@ -49,3 +49,4 @@ docs/*
 CLAUDE.md
 AGENTS.md
 .claude/
+*.docx
